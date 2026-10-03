@@ -1,0 +1,131 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>TIGORIX 1K Community Giveaway</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#172a4a,#050912 70%);color:#fff;font-family:Arial,sans-serif}.wrap{max-width:650px;margin:auto;padding:18px}.card{background:#0f1827;border:1px solid #2b3b54;border-radius:22px;padding:20px;margin:0 0 16px;box-shadow:0 16px 45px #0008}.brand{text-align:center;color:#ffd12a;font-size:30px;font-weight:900}.title{text-align:center;font-size:26px;font-weight:900;margin:8px 0}.muted{text-align:center;color:#aab6c8;line-height:1.55}.prize{text-align:center;font-size:36px;font-weight:900;color:#ffd12a;margin:14px 0}.timer{text-align:center;background:#070d16;border-radius:15px;padding:14px;font-size:30px;font-weight:900;letter-spacing:1px}.step{background:#08111e;border-radius:13px;padding:13px;margin:9px 0;line-height:1.5}.step b{color:#ffd12a}input{width:100%;padding:15px;border-radius:12px;border:1px solid #35475f;background:#070d16;color:#fff;font-size:16px;outline:0;margin-top:8px}button{width:100%;padding:15px;border:0;border-radius:13px;background:#ffd12a;color:#070707;font-size:16px;font-weight:900;margin-top:12px;cursor:pointer}button:disabled{opacity:.55}.status{margin-top:12px;padding:12px;border-radius:12px;background:#070d16;text-align:center}.ok{color:#32e49a}.err{color:#ff6876}.winner{display:flex;justify-content:space-between;gap:10px;background:#070d16;border:1px solid #2a3a52;border-radius:12px;padding:13px;margin:8px 0}.amount{color:#ffd12a;font-weight:900}.foot{text-align:center;color:#75839a;font-size:12px;padding:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="card">
+  <div class="brand">🐯 TIGORIX</div>
+  <div class="title">🎉 1K COMMUNITY GIVEAWAY</div>
+  <p class="muted">Celebrating 1,000 TIGORIX Community Members!</p>
+  <div class="prize">💰 1 USDT</div>
+  <p class="muted">🏆 10 random winners • 💎 0.1 USDT each</p>
+  <div id="timer" class="timer">Loading...</div>
+  <p id="user" class="muted">Detecting Telegram user...</p>
+</div>
+
+<div class="card">
+  <h2>🎁 How to Join</h2>
+  <div class="step"><b>1️⃣</b> Tap <b>OPEN & CONTINUE</b>. The promotion link opens on your first click.</div>
+  <div class="step"><b>2️⃣</b> Return and enter your <b>USDT BEP20 wallet address</b>.</div>
+  <div class="step"><b>3️⃣</b> Make sure you are a member of the <b>TIGORIX Community</b>.</div>
+  <div class="step"><b>4️⃣</b> Submit once and wait for the random draw.</div>
+
+  <button id="promo">🚀 OPEN & CONTINUE</button>
+
+  <div id="form" style="display:none">
+    <input id="wallet" maxlength="42" placeholder="USDT BEP20 address (0x...)">
+    <button id="join">🎉 JOIN GIVEAWAY</button>
+  </div>
+  <div id="status" class="status">Waiting...</div>
+</div>
+
+<div class="card">
+  <h2>🏆 Winners</h2>
+  <div id="winners"><p class="muted">Winners will appear here after the giveaway ends.</p></div>
+</div>
+<div class="foot">🐯 TIGORIX — MINE • EARN • GROW</div>
+</div>
+
+<script>
+const tg = window.Telegram?.WebApp;
+if(tg){tg.ready();tg.expand();}
+const API_URL="/api";
+const PROMO_URL="https://www.profitableratecpmnetwork.com/f1cgh1ike3?key=86274b50cbab66f6ec4b8d13d38240e1";
+const initData=tg?.initData||"";
+const tgUser=tg?.initDataUnsafe?.user;
+const statusBox=document.getElementById("status");
+
+function setStatus(t,c=""){statusBox.textContent=t;statusBox.className="status "+c;}
+
+const deviceKey="tigorix_giveaway_device_v1";
+let deviceId=localStorage.getItem(deviceKey);
+if(!deviceId){
+  deviceId=crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36)+Date.now().toString(36);
+  localStorage.setItem(deviceKey,deviceId);
+}
+
+if(tgUser){
+  const name=tgUser.username ? "@"+tgUser.username : (tgUser.first_name||"Telegram User");
+  document.getElementById("user").innerHTML="👤 Telegram User: <b>"+escapeHtml(name)+"</b>";
+}else{
+  document.getElementById("user").textContent="❌ Please open this page inside Telegram.";
+  document.getElementById("promo").disabled=true;
+}
+
+document.getElementById("promo").onclick=()=>{
+  try{
+    if(tg?.openLink) tg.openLink(PROMO_URL);
+    else window.open(PROMO_URL,"_blank","noopener,noreferrer");
+  }catch(e){window.open(PROMO_URL,"_blank","noopener,noreferrer")}
+  localStorage.setItem("tigorix_promo_clicked","1");
+  document.getElementById("promo").style.display="none";
+  document.getElementById("form").style.display="block";
+  setStatus("Promotion opened. Enter your BEP20 wallet.");
+};
+
+document.getElementById("join").onclick=async()=>{
+  const wallet=document.getElementById("wallet").value.trim();
+  if(!/^0x[a-fA-F0-9]{40}$/.test(wallet)){
+    setStatus("❌ Enter a valid USDT BEP20 address.","err");return;
+  }
+  if(!initData){setStatus("❌ Telegram authentication is missing.","err");return;}
+  const btn=document.getElementById("join");btn.disabled=true;
+  try{
+    const r=await fetch(API_URL+"/join",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({initData,wallet,deviceId})});
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.error||"Unable to join.");
+    setStatus("🎉 Entry confirmed! Good luck!","ok");
+  }catch(e){
+    setStatus("❌ "+e.message,"err");btn.disabled=false;
+  }
+};
+
+async function load(){
+  
+  try{
+    const r=await fetch(API_URL+"/status");
+    const d=await r.json();
+    if(d.endsAt) timer(new Date(d.endsAt));
+    if(d.winners?.length) renderWinners(d.winners);
+  }catch(e){console.log(e)}
+}
+function timer(end){
+  const el=document.getElementById("timer");
+  const tick=()=>{
+    let s=Math.max(0,Math.floor((end.getTime()-Date.now())/1000));
+    if(!s){el.textContent="🎉 GIVEAWAY ENDED"; fetch(API_URL+"/finish",{method:"POST"}).then(()=>load()).catch(()=>{}); return;}
+    const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),x=s%60;
+    el.textContent=String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")+":"+String(x).padStart(2,"0");
+    setTimeout(tick,1000);
+  };tick();
+}
+function renderWinners(list){
+  document.getElementById("winners").innerHTML=list.map((w,i)=>
+    `<div class="winner"><span>🏆 ${i+1}. ${escapeHtml(w.username?"@"+w.username:(w.firstName||"Telegram User"))}</span><span class="amount">${Number(w.amount).toFixed(1)} USDT</span></div>`
+  ).join("");
+}
+function escapeHtml(v){return String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));}
+load();
+</script>
+</body>
+</html>
