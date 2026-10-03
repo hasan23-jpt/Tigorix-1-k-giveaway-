@@ -1,0 +1,7 @@
+{
+  "name": "tigorix-1k-giveaway",
+  "private": true,
+  "dependencies": {
+    "firebase-admin": "^13.5.0"
+  }
+}
